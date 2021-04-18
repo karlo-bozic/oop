@@ -1,3 +1,9 @@
+/*
+OOP Assignment
+This only calls the GUI
+Karlo Bozic 18/04/2021
+*/
+
 package jdbcdemo;
 
 
