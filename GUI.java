@@ -6,15 +6,12 @@ It performs the actions depending on what the users do/input
 
 package jdbcdemo;
 
+
 import java.awt.FlowLayout;
+import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
+
 import java.util.ArrayList;
 
 import javax.swing.JButton;
@@ -23,20 +20,26 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
-public class GUI extends JFrame implements ActionListener, MouseListener {
-	
-	JPanel upper, mid1, mid2, bot1, bot2;
-	JButton button1, button2, button3;
-	JTextField text1, text2;
-	JLabel label, label2, label3;
-	JComboBox<String> comboBox;
+
+//Gui class that implements from ActionListener
+public class GUI extends JFrame implements ActionListener {
+
+	JPanel displayAllPanel, filterLabelPanel, filterPanel, customLabelPanel, textPanel, customPanel;
+	JButton displayAll, filterBy, customQuery;
+	JTextField dateFilter;
+	TextArea queryText;
+	JLabel filterLabel, customLabel;
+	JComboBox<String> countyName;
 	JTable table;
-	//static JLabel label2;
-	
+	DefaultTableModel model = new DefaultTableModel();
+	String Query;
+
+	//This string is for the combobox
     String[] counties = {"Select All", "Carlow", "Cavan", "Clare", "Cork", "Donegal", "Dublin", "Galway", "Kerry", "Kildare", "Kilkenny",
     		"Laois", "Leitrim", "Limerick", "Longford", "Louth", "Mayo", "Meath", "Monaghan", "Offaly", "Roscommon", "Sligo",
     		"Tipperary", "Waterford", "Westmeath", "Wexford", "Wicklow"};
@@ -44,140 +47,134 @@ public class GUI extends JFrame implements ActionListener, MouseListener {
 	GUI (String title)
 	{
 		super(title);
-		setSize(400,400);
-		setLayout(new FlowLayout());
-		
-		button1 = new JButton("Show entire table");
-		button2 = new JButton("Filter By");
-		button3 = new JButton("Enter the query");
-		
-		label = new JLabel(" Filter ");
-		label2 = new JLabel("Custom Query");
-		
-		text1 = new JTextField("",7);
-		text1.setToolTipText("dd/mm/yyyy");
-		
-		text2 = new JTextField("",15);
-		text2.setToolTipText("Enter own Query");
-		
-		comboBox = new JComboBox<String>(counties);
-		
-		table = new JTable(1,5);
-		
-		button1.addActionListener(this);
-		button2.addActionListener(this);
-		button3.addActionListener(this);
-		
-		upper = new JPanel(new FlowLayout(1,10,10));
-		mid1 = new JPanel(new FlowLayout(1,100,30));
-		mid2 = new JPanel(new FlowLayout(1,50,10));
-		bot1 = new JPanel(new FlowLayout(1,20,30));
-		bot2 = new JPanel(new FlowLayout(1,20,10));
-		
+		setSize(400,450); //sets the size for the GUI window
+		setLayout(new FlowLayout()); 
+		JPanel panel = new JPanel();
+		JFrame jf = new JFrame();
 
-		upper.add(button1);
-		add(upper);
+		displayAll = new JButton("Show entire table");
+		filterBy = new JButton("Filter By");
+		customQuery = new JButton("Enter the query");
 		
-		mid1.add(label);
-		add(mid1);
-		mid2.add(comboBox);
-		mid2.add(text1);
-		mid2.add(button2);
-		add(mid2);
+		filterLabel = new JLabel(" Filter ");
+		customLabel = new JLabel("Custom Query");
+		
+		dateFilter = new JTextField("",7);
+		dateFilter.setToolTipText("dd/mm/yyyy");
+		
+		queryText = new TextArea(3,45);
+		
+		//Creates the table with the given columns
+		table = new JTable(model);
+		model.addColumn("ID"); 
+		model.addColumn("County Name");
+		model.addColumn("Date"); 
+		model.addColumn("Covid Cases"); 
+		model.addColumn("PopulationProportionCovidCases"); 
+		
+		countyName = new JComboBox<String>(counties);
+		
+		displayAll.addActionListener(this);
+		filterBy.addActionListener(this);
+		customQuery.addActionListener(this);
+		
+		displayAllPanel = new JPanel(new FlowLayout(1,10,10));
+		filterLabelPanel = new JPanel(new FlowLayout(1,100,30));
+		filterPanel = new JPanel(new FlowLayout(1,50,10));
+		customLabelPanel = new JPanel(new FlowLayout(1,20,30));
+		textPanel = new JPanel(new FlowLayout(1,20,10));
+		customPanel = new JPanel(new FlowLayout(1,20,10));
+		
+		displayAllPanel.add(displayAll);
+		add(displayAllPanel);
+		
+		filterLabelPanel.add(filterLabel);
+		add(filterLabelPanel);
+		
+		filterPanel.add(countyName);
+		filterPanel.add(dateFilter);
+		filterPanel.add(filterBy);
+		add(filterPanel);
 
-		bot1.add(label2);
-		add(bot1);
-		mid2.add(table);
-		bot2.add(text2);
-		bot2.add(button3);
-		add(bot2);
+		customLabelPanel.add(customLabel);
+		add(customLabelPanel);
 		
+		textPanel.add(queryText);
+		add(textPanel);
+		
+		//customPanel
+		customPanel.add(customQuery);
+		add(customPanel);
+		
+		//Adds a new frame for the table
+		JScrollPane scrollBar=new JScrollPane(panel); //Allows the table to have a scroll bar
+		jf.add(scrollBar); 
+        jf.setSize(500, 500);
+        jf.setVisible(true);    
+        panel.add(table);
+
+        table.setBounds(10, 36, 527, 214); //Sets the bounds to the table so that the column name will appear
+        panel.add(new JScrollPane(table));
+        
 		setVisible(true);
 	}
 	
 	@Override
 	public void actionPerformed (ActionEvent e)
 	{
-		if (e.getSource() == button1)
+		if (e.getSource() == displayAll) //When the Display All button gets pressed
 		{
-			//Driver.display("SELECT * FROM covid INNER JOIN counties ON covid.ORIGID=counties.ORIGID ORDER BY OBJECTID");
-			Driver.display("SELECT * FROM covid");
+			Query = ("SELECT * FROM covid INNER JOIN counties ON covid.ORIGID=counties.ORIGID ORDER BY OBJECTID"); //Sends the query to the database
 		}
-		else if (e.getSource() == button2)
+		else if (e.getSource() == filterBy) //When the Filter By button gets pressed
 		{
-	        String county = (String)comboBox.getSelectedItem();
-	        String date = text1.getText();
+	        String county = (String)countyName.getSelectedItem(); //Takes in what the user picked from combobox
+	        String date = dateFilter.getText();   //Takes in what the user enetred for date in textfield
 
-	        if (county == "Select All"  && date.trim().equals(""))
+	        if (county == "Select All"  && date.trim().equals("")) //When user chooses select all (all counties) and no date was entered
 	        {
-				Driver.display("SELECT * FROM covid INNER JOIN counties ON covid.ORIGID=counties.ORIGID ORDER BY OBJECTID");
-				JOptionPane.showMessageDialog(this, "Select All with no date");
+				Query = ("SELECT * FROM covid INNER JOIN counties ON covid.ORIGID=counties.ORIGID ORDER BY OBJECTID");
 	        }
-	        else if(county == "Select All")
+	        else if(county == "Select All") //When user chooses select all (all counties) and a date was entered
 	        {
-		        JOptionPane.showMessageDialog(this, "Select All with a set date");
-				Driver.display("SELECT * FROM covid INNER JOIN counties ON covid.ORIGID=counties.ORIGID WHERE covid.TimeStamp='"+date+ "' ORDER BY OBJECTID");
+		        Query = ("SELECT * FROM covid INNER JOIN counties ON covid.ORIGID=counties.ORIGID WHERE covid.TimeStamp='"+date+ "' ORDER BY OBJECTID");
 	        }
-	        else if (date.trim().equals(""))
+	        else if (date.trim().equals("")) //When county name was chosen and no date was eneterd
 	        {
-		        Driver.display("SELECT * FROM covid INNER JOIN counties ON covid.ORIGID=counties.ORIGID WHERE counties.CountyName='"+county+"' ORDER BY OBJECTID");
-
-		        JOptionPane.showMessageDialog(this, "County with no date");
+	        	Query = ("SELECT * FROM covid INNER JOIN counties ON covid.ORIGID=counties.ORIGID WHERE counties.CountyName='"+county+"' ORDER BY OBJECTID");
 	        }
-	        else
+	        else //When the county name and the date was chosen
 	        {
-		        Driver.display("SELECT * FROM covid INNER JOIN counties ON covid.ORIGID=counties.ORIGID WHERE counties.CountyName='"+county+"' AND covid.TimeStamp='"+date+"' ORDER BY OBJECTID");
+	        	Query = ("SELECT * FROM covid INNER JOIN counties ON covid.ORIGID=counties.ORIGID WHERE counties.CountyName='"+county+"' AND covid.TimeStamp='"+date+"' ORDER BY OBJECTID");
 	        }
 		}
-		else if (e.getSource() == button3)
+		else if (e.getSource() == customQuery) //When the Custom Query button gets pressed
 		{
 			
-			if (text2.getText() == null || text2.getText().trim().equals(""))
+			if (queryText.getText() == null || queryText.getText().trim().equals("")) //When nothing is entered in the textarea
 			{
 				JOptionPane.showMessageDialog(this, "Nothing was entered");
 			}
 			else
 			{
-				String input = text2.getText();
-				Driver.display(input);
+				Query  = queryText.getText(); //Sends the query that was written to the database
 			}
+		}
+		
+		
+		ArrayList<Covid> list = Driver.display(Query);
+		Object[] row = new Object[5]; //Sets the rows to 5
+		model.setRowCount(0); //Clears the table
+		
+		//For loop gets data from ArrayList and places them into the row of the tables
+		for(int i = 0; i < list.size(); i++ ) {
+			row[0] = list.get(i).getOBJECTID();
+			row[1] = list.get(i).getCountyName();
+			row[2] = list.get(i).getTimeStamp();
+			row[3] = list.get(i).getConfirmedCovidCases();
+			row[4] = list.get(i).getPopulationProportionCovidCases();
+			model.addRow(row); //Adds the row to table
 		}
 	}
 
-/*
-	
-	public ArrayList<Covid> List() {
-		ArrayList<Covid> covidList = new ArrayList<>();
-		
-		try {
-			Connection myConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/oop", "root", "root");
-				
-			Statement myStmt = myConn.createStatement();
-			String QUERY = "Select * FROM covidtest";
-			ResultSet myRs = myStmt.executeQuery(QUERY);
-			while(myRs.next()) {
-				Covid covid = new Covid(myRs.getInt("OBJECTID"), myRs.getInt("ORIGID"), myRs.getString("TimeStamp"), myRs.getInt("ConfirmedCovidCases"), myRs.getInt("PopulationProportionCovidCases"));
-				covidList.add(covid);	
-			}
-			
-		}
-		catch (Exception exc) {
-			JOptionPane.showMessageDialog(null, "Error, please retry");
-			exc.printStackTrace();
-			}
-			return covidList;
-		}
-	
-
-	public void show() {
-		ArrayList<Covid> list = List();
-		DefaultTableModel model = (DefaultTableModel)table.getModel();
-		model.setRowCount(0);
-		
-		for (Covid covid : list) {
-            Object rowData[] = {covid.getOBJECTID(), covid.getORIGID(), covid.getTimeStamp(), covid.getConfirmedCovidCases(), covid.getPopulationProportionCovidCases()};
-            model.addRow(rowData);
-		}
-	}
-*/
 }

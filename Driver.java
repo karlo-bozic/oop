@@ -9,52 +9,37 @@ import java.sql.*;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
-import javax.swing.table.DefaultTableModel;
+
 
 
 public class Driver {
 
 	static ArrayList<Covid> display(String QUERY) {
-
+		//Creates a ArrayList that will hold data from the database and this will be used to create a table
 		ArrayList<Covid> covidList = new ArrayList<>();
 		
 		try {
+			//Connects to the sql database
 			Connection myConn = DriverManager.getConnection("jdbc:mysql://localhost:3306/oop", "root", "root");
 				
+			//This creates a statement so that the query can be sent
 			Statement myStmt = myConn.createStatement();
 
+			//This sends out the given query to the database and receives the results
 			ResultSet myRs = myStmt.executeQuery(QUERY);
-			
-			System.out.println("OBJECTID, County Name, Time Stamp, Confirmed Covid Cases, Population Proportion Covid Cases ");
-						
+									
 			while (myRs.next()) {
-				Covid covid = new Covid(myRs.getInt("OBJECTID"), myRs.getInt("ORIGID"), myRs.getString("TimeStamp"), myRs.getInt("ConfirmedCovidCases"), myRs.getInt("PopulationProportionCovidCases"));
+				Covid covid = new Covid(myRs.getInt("OBJECTID"), myRs.getString("CountyName"), myRs.getString("TimeStamp"), myRs.getInt("ConfirmedCovidCases"), myRs.getInt("PopulationProportionCovidCases"));
 				covidList.add(covid);
-				
-				System.out.println(myRs.getString("OBJECTID") + ", " + myRs.getString("ORIGID") + ", " + myRs.getString("TimeStamp")  + ", " + myRs.getString("ConfirmedCovidCases") + ", " + myRs.getString("PopulationProportionCovidCases"));
 			}			
 			
 		}
 		catch (Exception exc) {
+			//Displays that there was an error
 			JOptionPane.showMessageDialog(null, "Error, please retry");
-			exc.printStackTrace();
 		}
+		//Returns the ArrayList
 		return covidList;
-	}
-	
-	public void show() {
-		ArrayList<Covid> list = display();
-		DefaultTableModel model = (DefaultTableModel)table.getModel();
-		Object[] row = new Object[5];
-		
-		for(int i=0;i<list.size();i++) {
-			row[0]=list.get(i).getOBJECTID();
-			row[1]=list.get(i).getCountyName();
-			row[2]=list.get(i).getTimeStamp();
-			row[3]=list.get(i).getConfirmedCovidCases();
-			row[4]=list.get(i).getPopulationProportionCovidCases();
-			model.addRow(row);
-		}
 	}
 
 }
