@@ -2,17 +2,25 @@ Control Class
 
 This is the class the program runs first, this calls to the GUI class which then displays the GUI.
 
+
+
 GUI Class
 
 This class creates the interface that allows you to go through the program. Using the ArrayList from Driver class, the data gets put in their columns and get displayed as tables on another frame
+
+
 
 Covid Class
 
 There is one constructor which takes the array of strings from the database. There is only getters in this class
 
+
+
 Driver Class
 
 This is where the connection between the program and sql database happens. They connect by using JDBC. There is a ArrayList, as the results from the query come into the program, the data goes into the ArrayList using the getters from the Covid Class. This ArrayList will then be used in displaying the table. If there is any error during the connection or storing proccess, an error message will appear to let the user know.
+
+
 
 
 Quick Description of Program
